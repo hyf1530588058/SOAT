@@ -22,7 +22,7 @@ from utils.algo_utils import get_percent_survival_evals, mutate, TerminationCond
 from ppo.myPPOmodel4 import Policy
 from ppo.arguments import get_args
 from ppo.envs import make_vec_envs
-from .inverted3 import inverted_ga
+from .inverted import inverted_ga
 import itertools
 import torch.nn.functional as F
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
