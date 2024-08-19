@@ -184,7 +184,7 @@ class TransformerModel(nn.Module):
                 for offset in offsets:
                     new_row = row + offset[0]
                     new_col = i + offset[1]
-                    if 0 <= new_row < 5 and 0 <= new_col < 5 and structure_body[new_row][new_col] != 0:
+                    if 0 <= new_row < 5 and 0 <= new_col < 5 :
                        R[x,5*new_row+new_col] = 0
         R_change = R[change_body.tolist()]   
         R_change = R_change[:,change_body.tolist()]  
