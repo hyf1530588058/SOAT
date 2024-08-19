@@ -3,13 +3,6 @@ This is the code for the paper [SOAT: A Scenario-Oriented Adversarial Training A
 
 In the field of robotic control, universal control policies model robot morphologies as graph structures and utilize Graph Neural Networks (GNNs) and Transformers to process variable-length observations and actions, enabling generalized control across diverse robot morphologies. However, current algorithms are often trained and evaluated with highly similar morphologies, restricting their utility in downstream tasks that require generalised control ability, such as morphological design optimization and robust control against significant structural damage. To overcome this issue, we introduce SOAT, a novel pre-training method that constructs an adversarial set of morphology samples tailored to the specific requirements of downstream scenarios, enhancing the performance of universal control policies. Experimental results in scenarios involving damaged robot morphologies demonstrate that SOAT significantly improves the generalization capabilities of these policies, offering a robust solution for diverse and evolving robotic systems.
 
-# Installation
-
-Clone the repo and submodules:
-
-```shell
-git clone --recurse-submodules https://github.com/hyf1530588058/HeteroMorpheus.git
-```
 
 ### Requirements
 * Python 3.7
