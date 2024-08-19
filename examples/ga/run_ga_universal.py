@@ -13,13 +13,13 @@ external_dir = os.path.join(root_dir, 'externals')
 sys.path.insert(0, root_dir)   #定义搜索路径的优先级顺序#
 sys.path.insert(1, os.path.join(external_dir, 'pytorch_a2c_ppo_acktr_gail'))
 import datetime
-from ppo.metaPPOrun import run_metappo
+from ppo.myPPOrun4 import run_ppo4
 from ppo.metamorphmodel import num_params
 from evogym import sample_robot, hashable, is_connected, has_actuator, get_full_connectivity
 import utils.mp_group as mp
 from utils.algo_utils import get_percent_survival_evals, mutate, TerminationCondition, Structure
 # from ppo.metaPPOmodel import Policy
-from ppo.myPPOmodel2 import Policy
+from ppo.myPPOmodel4 import Policy
 from ppo.arguments import get_args
 from ppo.envs import make_vec_envs
 from .inverted3 import inverted_ga
@@ -94,15 +94,11 @@ def run_meta(experiment_name, structure_shape, pop_size, max_evaluations, train_
     population_structure_hashes = {}
     origin_body = []
     orth_structures = []  
-    # robot_label = np.random.choice(np.setdiff1d(np.arange(100), [41,54]),pop_size,replace=False)
-    # #robot_label = np.random.choice(20,max_evaluations,replace=False)
-    # #robot_label = [22,24,0,25,12,21,1,4,20,26] 
-    # print(robot_label)
-    # #generate a population
+
     # if not is_continuing:    #在新数据中#
     for i in range(pop_size):
         # j = i+12
-        save_path_structure = os.path.join(root_dir,"robot_universal/pusher",str(i) + ".npz") 
+        save_path_structure = os.path.join(root_dir,"robot_universal/walker",str(i) + ".npz") 
         np_data = np.load(save_path_structure)    #读取文件
         structure_data = []
         for key, value in itertools.islice(np_data.items(), 2):  #将读取的原数据添加到新的预训练列表中#
@@ -110,52 +106,11 @@ def run_meta(experiment_name, structure_shape, pop_size, max_evaluations, train_
         structure_data = tuple(structure_data)            
         structures.append(Structure(*structure_data, i))  # *号是将列表拆开成两个独立参数：体素数组和连接数组然后传入Structure类当中，label属性是机器人的编号#
     
-    # for i in range (125):        
-    #     temp_structure = sample_robot(structure_shape)
-    #     while (hashable(temp_structure[0]) in population_structure_hashes):
-    #         temp_structure = sample_robot(structure_shape)
-    #     population_structure_hashes[hashable(temp_structure[0])] = True
-    #     origin_body.append(temp_structure[0])
-
-    # body_list = torch.stack([torch.tensor(matrix) for matrix in origin_body])
-    # body_list = body_list.to(torch.int64)
-    # one_hot = F.one_hot(body_list, num_classes=5)
-    # one_hot = one_hot.view(body_list.shape[0], -1)
-    # one_hot = one_hot.float()
-    # orthogonal_bases, r = torch.linalg.qr(one_hot.T)
-    # num_bases = orthogonal_bases.shape[1]
-    # original_shape_matrices = []
-    # for i in range(num_bases):
-    #     reshaped = orthogonal_bases[:, i].view(5, 5, 5)
-    #     original_matrix = torch.argmax(reshaped, axis=2)
-    #     original_shape_matrices.append(original_matrix)   
-    # for i, matrix in enumerate(original_shape_matrices):
-    #     if not is_connected(matrix) or not has_actuator(matrix):
-    #         continue
-    #     matrix = matrix.numpy()
-    #     temp_structure = matrix, get_full_connectivity(matrix)
-    #     orth_structures.append(Structure(*temp_structure, str(generation)+"_"+str(i)))
-    #     population_structure_hashes[hashable(temp_structure[0])] = True
-    #     num_evaluations += 1
-    # print("orth_structures:",len(orth_structures))
-
-    # for root, dirs, files in os.walk(os.path.join(root_dir,"saved_data","new_adv_07","generation_0","structure")):
-    #         for file in files:
-    #             save_path_structure = os.path.join(root, file)
-    #             np_data = np.load(save_path_structure)
-    #             structure_data = []
-    #             for key, value in itertools.islice(np_data.items(), 2):  #将读取的原数据添加到新的预训练列表中#
-    #                 structure_data.append(value)
-    #             structure_data = tuple(structure_data)
-    #             index =  file.find(".")
-    #             orth_structures.append(Structure(*structure_data, file[:index]))
-
     args = get_args()    #在训练最外层初始化模型#
     actor_critic = Policy(
         base_kwargs={'recurrent': args.recurrent_policy})
     actor_critic.to(device)
-    # actor_critic.load_state_dict(torch.load(os.path.join(root_dir,"saved_data","new_adv_07","generation_0","controller","robot_"+"0_124"+"_controller"+".pt"))[0].state_dict())
-    # print("Num params: {}".format(num_params(actor_critic)))
+   # print("Num params: {}".format(num_params(actor_critic)))
     while True:
         
         ### MAKE GENERATION DIRECTORIES ###
@@ -183,7 +138,7 @@ def run_meta(experiment_name, structure_shape, pop_size, max_evaluations, train_
         # if  restart != 0:
         for structure in structures:           
             ppo_args = ((structure.body, structure.connections), tc, (save_path_controller, structure.label),actor_critic,args)  #用于传入多进程并行模块的参数，包括机器人结构和标签，终止条件，控制器保存路径,cichu#
-            group.add_job(run_metappo, ppo_args, callback=structure.set_reward)   #对随机生成的机器人添加训练的进程，可以用于获得奖励#
+            group.add_job(run_ppo4, ppo_args, callback=structure.set_reward)   #对随机生成的机器人添加训练的进程，可以用于获得奖励#
                         
         group.run_jobs(num_cores)  #开始并行训练，每并行训练完num_cores个机器人后就训练下一批num_cores个机器人，每个机器人ppo算法均训练1000轮#
         train_evalutions += len(structures)
